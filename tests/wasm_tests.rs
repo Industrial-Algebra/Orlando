@@ -98,27 +98,6 @@ fn test_wasm_step_monad() {
     assert_eq!(s.unwrap(), 42);
 }
 
-#[wasm_bindgen_test]
-fn test_wasm_simd_operations() {
-    use orlando_transducers::simd::*;
-
-    let data = vec![1.0, 2.0, 3.0, 4.0];
-
-    // map_f64_simd
-    let result = map_f64_simd(&data, |x| x * 2.0);
-    assert_eq!(result, vec![2.0, 4.0, 6.0, 8.0]);
-
-    // sum_f64_simd
-    let sum = sum_f64_simd(&data);
-    assert_eq!(sum, 10.0);
-
-    // mul_f64_simd
-    let a = vec![1.0, 2.0, 3.0, 4.0];
-    let b = vec![2.0, 3.0, 4.0, 5.0];
-    let result = mul_f64_simd(&a, &b);
-    assert_eq!(result, vec![2.0, 6.0, 12.0, 20.0]);
-}
-
 // Pipeline API tests (JavaScript interop)
 #[wasm_bindgen_test]
 fn test_wasm_pipeline_basic() {

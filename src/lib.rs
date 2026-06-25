@@ -73,7 +73,6 @@
 //!
 //! Orlando leverages:
 //! - **Zero-cost abstractions** - Rust's monomorphization eliminates abstraction overhead
-//! - **WASM SIMD** - Vectorized operations for numeric data
 //! - **Early termination** - Stop processing as soon as possible
 //! - **Single-pass execution** - No intermediate allocations
 //!
@@ -86,7 +85,6 @@ pub mod logic;
 pub mod optics;
 pub mod profunctor;
 pub mod signal;
-pub mod simd;
 pub mod step;
 pub mod stream;
 pub mod transducer;

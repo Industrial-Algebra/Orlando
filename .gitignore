@@ -1,5 +1,7 @@
 /target
 /pkg
+/pkg-temp
+/pkg-test
 node_modules
 *.log
 Cargo.lock

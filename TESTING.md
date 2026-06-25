@@ -91,7 +91,6 @@ Located alongside source code in each module:
 - `src/transducer.rs` - Transducer trait tests
 - `src/transforms.rs` - Individual transform tests
 - `src/collectors.rs` - Collector function tests
-- `src/simd.rs` - SIMD operation tests
 
 ### Integration Tests (`tests/`)
 
@@ -175,7 +174,6 @@ WASM tests verify browser compatibility and JavaScript interop:
 - All collectors
 - Category theory laws
 - Step monad
-- SIMD operations
 
 ## Continuous Integration
 
@@ -211,7 +209,6 @@ Current coverage by module:
 - `transforms.rs` - ~90%
 - `collectors.rs` - ~95%
 - `pipeline.rs` - ~70% (WASM-only code)
-- `simd.rs` - ~85%
 
 ## Test Data Strategy
 

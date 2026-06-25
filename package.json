@@ -1,6 +1,6 @@
 {
   "name": "orlando-transducers",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Compositional data transformation with transducers - Rust/WASM powered",
   "main": "pkg/orlando.js",
   "types": "pkg/orlando.d.ts",

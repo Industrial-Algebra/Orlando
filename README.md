@@ -64,7 +64,6 @@ Real-world benchmarks show **3-19x speedup** over native JavaScript array method
 1. **Zero intermediate arrays** - Array methods create a new array at each step
 2. **Early termination** - Orlando stops processing immediately when conditions are met
 3. **WASM execution** - Native performance via WebAssembly
-4. **SIMD optimizations** - Vectorized operations for numeric data (when available)
 
 [Run benchmarks in your browser →](examples/performance.html)
 
@@ -752,7 +751,6 @@ orlando/
 │   ├── signal.rs               # Reactive Signal<T>
 │   ├── stream.rs               # Reactive Stream<T>
 │   ├── iter_ext.rs             # Rust iterator extensions & PipelineBuilder
-│   ├── simd.rs                 # SIMD optimizations
 │   └── pipeline.rs             # JavaScript Pipeline WASM API
 ├── docs/api/                   # API documentation
 ├── examples/                   # Interactive HTML examples
@@ -775,7 +773,6 @@ Orlando works in all modern browsers with WebAssembly support:
 Contributions welcome! Areas we'd love help with:
 
 - Additional transformations (partition, chunk, etc.)
-- More SIMD optimizations
 - Performance benchmarks
 - Documentation improvements
 - Real-world example applications

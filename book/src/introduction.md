@@ -65,7 +65,6 @@ Orlando's architecture is designed around three principles:
 1. **Zero intermediate arrays** - Array methods create a new array at each step
 2. **Early termination** - Orlando stops processing immediately when conditions are met
 3. **WASM execution** - Pre-compiled, consistent native performance
-4. **SIMD optimizations** - Vectorized operations for numeric data (when available)
 
 ## Category Theory Foundation
 
