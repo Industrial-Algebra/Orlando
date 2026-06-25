@@ -79,6 +79,7 @@
 //! Benchmarks show 3-5x performance improvement over pure JavaScript array chaining.
 
 pub mod collectors;
+pub mod describe;
 pub mod geometric_optics;
 pub mod iter_ext;
 pub mod logic;
@@ -120,6 +121,9 @@ pub use collectors::{
 
 // Re-export logic functions and conditional transducers
 pub use logic::{all_pass, any_pass, both, complement, either, IfElse, Unless, When};
+
+// Re-export pipeline reflection
+pub use describe::{Describable, StageSpec};
 
 // Re-export optics
 pub use optics::{ComposedLens, Fold, Iso, Lens, Optional, Prism, Traversal};

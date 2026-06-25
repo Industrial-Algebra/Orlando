@@ -23,6 +23,7 @@
 //! - Right identity: `t.compose(id()) == t`
 //! - Associativity: `(t1.compose(t2)).compose(t3) == t1.compose(t2.compose(t3))`
 
+use crate::describe::{Describable, StageSpec};
 use crate::step::Step;
 use std::marker::PhantomData;
 
@@ -136,6 +137,28 @@ where
         // Compose right-to-left: first apply second, then first
         let r2 = self.second.apply(reducer);
         self.first.apply(r2)
+    }
+}
+
+// ===========================================================================
+// Reflection: Identity and Compose describe themselves as StageSpec lists.
+// ===========================================================================
+
+impl<T> Describable for Identity<T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Identity);
+    }
+}
+
+impl<T1, T2, In, Mid, Out> Describable for Compose<T1, T2, In, Mid, Out>
+where
+    T1: Describable,
+    T2: Describable,
+{
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        // Data flows `first` -> `second` (see `apply`), so describe in that order.
+        self.first.describe_into(out);
+        self.second.describe_into(out);
     }
 }
 

@@ -2,6 +2,7 @@
 //!
 //! This module provides common transducers like map, filter, take, etc.
 
+use crate::describe::{Describable, StageSpec};
 use crate::step::{cont, stop, Step};
 use crate::transducer::Transducer;
 use std::cell::RefCell;
@@ -936,6 +937,108 @@ where
                 cont(acc)
             }
         })
+    }
+}
+
+// ===========================================================================
+// Reflection: each transform describes itself as a single StageSpec.
+// These impls require no bounds on the closure/type parameters — description
+// is structural and never invokes the captured function.
+// ===========================================================================
+
+impl<F, In, Out> Describable for Map<F, In, Out> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Map);
+    }
+}
+
+impl<P, T> Describable for Filter<P, T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Filter);
+    }
+}
+
+impl<P, T> Describable for Reject<P, T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Reject);
+    }
+}
+
+impl<T> Describable for Take<T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Take { n: self.n });
+    }
+}
+
+impl<P, T> Describable for TakeWhile<P, T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::TakeWhile);
+    }
+}
+
+impl<T> Describable for Drop<T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Drop { n: self.n });
+    }
+}
+
+impl<P, T> Describable for DropWhile<P, T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::DropWhile);
+    }
+}
+
+impl<T> Describable for Chunk<T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Chunk { size: self.size });
+    }
+}
+
+impl<T> Describable for Unique<T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Unique);
+    }
+}
+
+impl<F, T, K> Describable for UniqueBy<F, T, K> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::UniqueBy);
+    }
+}
+
+impl<F, T, S> Describable for Scan<F, T, S> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Scan);
+    }
+}
+
+impl<F, In, Out> Describable for FlatMap<F, In, Out> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::FlatMap);
+    }
+}
+
+impl<F, T> Describable for Tap<F, T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Tap);
+    }
+}
+
+impl<T> Describable for Interpose<T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Interpose);
+    }
+}
+
+impl<T> Describable for RepeatEach<T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::RepeatEach { n: self.n });
+    }
+}
+
+impl<T> Describable for Aperture<T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Aperture { size: self.size });
     }
 }
 
