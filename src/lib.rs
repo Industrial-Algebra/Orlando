@@ -81,6 +81,8 @@
 pub mod collectors;
 pub mod describe;
 pub mod geometric_optics;
+#[macro_use]
+pub mod macros;
 pub mod iter_ext;
 pub mod logic;
 pub mod optics;
