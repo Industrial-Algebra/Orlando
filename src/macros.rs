@@ -99,6 +99,7 @@ macro_rules! pipeline {
     // ---- terminal stages (no trailing >>) ----
     (identity) => { $crate::Identity::<_>::new() };
     (map($f:expr)) => { $crate::Map::new($f) };
+    (iso_map($to:expr, $from:expr)) => { $crate::IsoMap::new($to, $from) };
     (filter($p:expr)) => { $crate::Filter::new($p) };
     (reject($p:expr)) => { $crate::Reject::new($p) };
     (take($n:expr)) => { $crate::Take::<_>::new($n) };
@@ -125,6 +126,9 @@ macro_rules! pipeline {
     };
     (map($f:expr) >> $($rest:tt)*) => {
         $crate::Transducer::compose($crate::Map::new($f), $crate::pipeline!($($rest)*))
+    };
+    (iso_map($to:expr, $from:expr) >> $($rest:tt)*) => {
+        $crate::Transducer::compose($crate::IsoMap::new($to, $from), $crate::pipeline!($($rest)*))
     };
     (filter($p:expr) >> $($rest:tt)*) => {
         $crate::Transducer::compose($crate::Filter::new($p), $crate::pipeline!($($rest)*))
@@ -219,6 +223,9 @@ macro_rules! pipeline_descriptor {
     (@accum ($($done:expr),*) map) => {
         $crate::pipeline_descriptor!(@accum ($($done,)* $crate::StageSpec::Map))
     };
+    (@accum ($($done:expr),*) iso_map) => {
+        $crate::pipeline_descriptor!(@accum ($($done,)* $crate::StageSpec::IsoMap))
+    };
     (@accum ($($done:expr),*) filter) => {
         $crate::pipeline_descriptor!(@accum ($($done,)* $crate::StageSpec::Filter))
     };
@@ -280,6 +287,9 @@ macro_rules! pipeline_descriptor {
     };
     (@accum ($($done:expr),*) map >> $($rest:tt)*) => {
         $crate::pipeline_descriptor!(@accum ($($done,)* $crate::StageSpec::Map) $($rest)*)
+    };
+    (@accum ($($done:expr),*) iso_map >> $($rest:tt)*) => {
+        $crate::pipeline_descriptor!(@accum ($($done,)* $crate::StageSpec::IsoMap) $($rest)*)
     };
     (@accum ($($done:expr),*) filter >> $($rest:tt)*) => {
         $crate::pipeline_descriptor!(@accum ($($done,)* $crate::StageSpec::Filter) $($rest)*)
@@ -344,7 +354,7 @@ macro_rules! pipeline_descriptor {
 #[cfg(test)]
 mod tests {
     use crate::collectors::to_vec;
-    use crate::{Describable, StageSpec};
+    use crate::{Describable, Invertible, StageSpec};
 
     // ---- pipeline!: build + run ----
 
@@ -428,6 +438,18 @@ mod tests {
         let _ = pipeline!(when(|_: &i32| true, |x: i32| x));
         let _ = pipeline!(unless(|_: &i32| false, |x: i32| x));
         let _ = pipeline!(if_else(|_: &i32| true, |x: i32| x, |x: i32| x));
+        let _ = pipeline!(iso_map(|x: i32| x + 1, |y: i32| y - 1));
+    }
+
+    #[test]
+    fn pipeline_iso_map_is_invertible() {
+        // A pipeline built entirely from invertible stages is itself invertible.
+        let p = pipeline!(iso_map(|x: i32| x * 2, |y: i32| y / 2) >> iso_map(|x: i32| x + 10, |y: i32| y - 10));
+        let input = vec![1, 2, 3];
+        let output = to_vec(&p, input.clone());
+        assert_eq!(output, vec![12, 14, 16]);
+        // invert() recovers the original input.
+        assert_eq!(to_vec(&p.invert(), output), input);
     }
 
     // ---- pipeline_descriptor!: const descriptor ----

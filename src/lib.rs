@@ -81,6 +81,7 @@
 pub mod collectors;
 pub mod describe;
 pub mod geometric_optics;
+pub mod invert;
 #[macro_use]
 pub mod macros;
 pub mod iter_ext;
@@ -126,6 +127,9 @@ pub use logic::{all_pass, any_pass, both, complement, either, IfElse, Unless, Wh
 
 // Re-export pipeline reflection
 pub use describe::{Describable, StageSpec};
+
+// Re-export invertible transducer groupoid
+pub use invert::{invert, Invertible, IsoMap};
 
 // Re-export optics
 pub use optics::{ComposedLens, Fold, Iso, Lens, Optional, Prism, Traversal};

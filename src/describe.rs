@@ -48,7 +48,15 @@ pub enum StageSpec {
     /// The identity transducer — passes values through unchanged.
     Identity,
     /// Transform each value with a function (`Map`).
+    ///
+    /// Note: a plain `Map` may or may not be invertible depending on its
+    /// closure — see [`IsoMap`](Self::IsoMap) for the proven-reversible form.
     Map,
+    /// A proven-reversible map: a streaming isomorphism pairing `to`/`from`.
+    ///
+    /// The transducer-level analogue of the `Iso` optic. Belongs to the
+    /// bijective groupoid (Layer A) and admits a clean [`invert`](crate::Invertible).
+    IsoMap,
     /// Keep only values matching a predicate (`Filter`).
     Filter,
     /// Inverse of [`Filter`](Self::Filter) — drop values matching a predicate.
@@ -96,6 +104,7 @@ impl StageSpec {
         match self {
             Self::Identity => "identity",
             Self::Map => "map",
+            Self::IsoMap => "isoMap",
             Self::Filter => "filter",
             Self::Reject => "reject",
             Self::Take { .. } => "take",
@@ -132,7 +141,7 @@ impl StageSpec {
     /// this classification is structural — callers constructing a true inverse
     /// (Step 4) must supply and verify the inverse function explicitly.
     pub fn is_reversible(&self) -> bool {
-        matches!(self, Self::Identity | Self::Map)
+        matches!(self, Self::Identity | Self::Map | Self::IsoMap)
     }
 
     /// Convenience inverse of [`is_reversible`](Self::is_reversible).

@@ -24,6 +24,7 @@
 //! - Associativity: `(t1.compose(t2)).compose(t3) == t1.compose(t2.compose(t3))`
 
 use crate::describe::{Describable, StageSpec};
+use crate::invert::Invertible;
 use crate::step::Step;
 use std::marker::PhantomData;
 
@@ -159,6 +160,39 @@ where
         // Data flows `first` -> `second` (see `apply`), so describe in that order.
         self.first.describe_into(out);
         self.second.describe_into(out);
+    }
+}
+
+// ===========================================================================
+// Invertibility: Identity and Compose form the groupoid (Layer A).
+// ===========================================================================
+
+impl<T> Invertible<T, T> for Identity<T> {
+    // Identity is its own inverse.
+    type Inverse = Identity<T>;
+
+    fn invert(&self) -> Self::Inverse {
+        Identity {
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<T1, T2, In, Mid, Out> Invertible<In, Out> for Compose<T1, T2, In, Mid, Out>
+where
+    T1: Invertible<In, Mid>,
+    T2: Invertible<Mid, Out>,
+{
+    // Groupoid composition law: (a ∘ b)⁻¹ = b⁻¹ ∘ a⁻¹.
+    // The inverse reverses stage order and inverts each part.
+    type Inverse = Compose<T2::Inverse, T1::Inverse, Out, Mid, In>;
+
+    fn invert(&self) -> Self::Inverse {
+        Compose {
+            first: self.second.invert(),
+            second: self.first.invert(),
+            _phantom: PhantomData,
+        }
     }
 }
 
