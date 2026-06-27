@@ -1315,3 +1315,197 @@ fn test_wasm_pipeline_lens_composition() {
     assert_eq!(result.get(0).as_string(), Some("Alice".to_string()));
     assert_eq!(result.get(1).as_string(), Some("Charlie".to_string()));
 }
+
+// ===========================================================================
+// Reflection & inversion (inverse-transducer design, Step 5)
+// ===========================================================================
+
+#[wasm_bindgen_test]
+fn test_wasm_pipeline_describe() {
+    use js_sys::{Array, Function, Reflect};
+    use orlando_transducers::Pipeline;
+
+    let p = Pipeline::new()
+        .map(&Function::new_with_args("x", "return x * 2"))
+        .filter(&Function::new_with_args("x", "return x > 5"))
+        .take(3);
+
+    let desc = p.describe();
+    assert_eq!(desc.length(), 3);
+
+    let op0 = Reflect::get(&desc.get(0), &"op".into()).unwrap();
+    assert_eq!(op0.as_string(), Some("map".to_string()));
+
+    let op1 = Reflect::get(&desc.get(1), &"op".into()).unwrap();
+    assert_eq!(op1.as_string(), Some("filter".to_string()));
+
+    let stage2 = desc.get(2);
+    let op2 = Reflect::get(&stage2, &"op".into()).unwrap();
+    assert_eq!(op2.as_string(), Some("take".to_string()));
+    let n2 = Reflect::get(&stage2, &"n".into()).unwrap();
+    assert_eq!(n2.as_f64(), Some(3.0));
+}
+
+#[wasm_bindgen_test]
+fn test_wasm_pipeline_describe_empty() {
+    use orlando_transducers::Pipeline;
+
+    let desc = Pipeline::new().describe();
+    assert_eq!(desc.length(), 0);
+}
+
+#[wasm_bindgen_test]
+fn test_wasm_pipeline_iso_map_forward() {
+    use js_sys::{Array, Function};
+    use orlando_transducers::Pipeline;
+
+    let p = Pipeline::new().iso_map(
+        &Function::new_with_args("x", "return x * 2"),
+        &Function::new_with_args("y", "return y / 2"),
+    );
+
+    let source = Array::new();
+    source.push(&1.into());
+    source.push(&2.into());
+    source.push(&3.into());
+
+    let result = p.to_array(&source);
+    assert_eq!(result.length(), 3);
+    assert_eq!(result.get(0).as_f64(), Some(2.0));
+    assert_eq!(result.get(1).as_f64(), Some(4.0));
+    assert_eq!(result.get(2).as_f64(), Some(6.0));
+}
+
+#[wasm_bindgen_test]
+fn test_wasm_pipeline_describe_iso_map_marked_reversible() {
+    use js_sys::{Function, Reflect};
+    use orlando_transducers::Pipeline;
+
+    let p = Pipeline::new().iso_map(
+        &Function::new_with_args("x", "return x + 1"),
+        &Function::new_with_args("y", "return y - 1"),
+    );
+
+    let desc = p.describe();
+    assert_eq!(desc.length(), 1);
+    let stage = desc.get(0);
+    let op = Reflect::get(&stage, &"op".into()).unwrap();
+    assert_eq!(op.as_string(), Some("isoMap".to_string()));
+    let rev = Reflect::get(&stage, &"reversible".into()).unwrap();
+    assert_eq!(rev.as_bool(), Some(true));
+}
+
+#[wasm_bindgen_test]
+fn test_wasm_pipeline_can_invert() {
+    use js_sys::Function;
+    use orlando_transducers::Pipeline;
+
+    // Empty pipeline is the identity — invertible.
+    assert!(Pipeline::new().can_invert());
+
+    // isoMap-only pipeline is invertible.
+    let invertible = Pipeline::new().iso_map(
+        &Function::new_with_args("x", "return x + 1"),
+        &Function::new_with_args("y", "return y - 1"),
+    );
+    assert!(invertible.can_invert());
+
+    // A plain map makes it lossy (no inverse captured).
+    let lossy = Pipeline::new().map(&Function::new_with_args("x", "return x * 2"));
+    assert!(!lossy.can_invert());
+
+    // filter/take are lossy.
+    let lossy2 = Pipeline::new()
+        .iso_map(
+            &Function::new_with_args("x", "return x + 1"),
+            &Function::new_with_args("y", "return y - 1"),
+        )
+        .filter(&Function::new_with_args("x", "return x > 0"));
+    assert!(!lossy2.can_invert());
+}
+
+#[wasm_bindgen_test]
+fn test_wasm_pipeline_invert_roundtrip() {
+    use js_sys::{Array, Function};
+    use orlando_transducers::Pipeline;
+
+    // Forward: x -> x*2 -> then +10.  Inverse must recover the original.
+    let forward = Pipeline::new()
+        .iso_map(
+            &Function::new_with_args("x", "return x * 2"),
+            &Function::new_with_args("y", "return y / 2"),
+        )
+        .iso_map(
+            &Function::new_with_args("x", "return x + 10"),
+            &Function::new_with_args("y", "return y - 10"),
+        );
+
+    let source = Array::new();
+    source.push(&1.into());
+    source.push(&2.into());
+    source.push(&3.into());
+
+    let output = forward.to_array(&source);
+    assert_eq!(output.get(0).as_f64(), Some(12.0));
+    assert_eq!(output.get(1).as_f64(), Some(14.0));
+    assert_eq!(output.get(2).as_f64(), Some(16.0));
+
+    let inverse = forward.invert().expect("isoMap pipeline should invert");
+    let recovered = inverse.to_array(&output);
+    assert_eq!(recovered.get(0).as_f64(), Some(1.0));
+    assert_eq!(recovered.get(1).as_f64(), Some(2.0));
+    assert_eq!(recovered.get(2).as_f64(), Some(3.0));
+}
+
+#[wasm_bindgen_test]
+fn test_wasm_pipeline_invert_describes_reversed() {
+    use orlando_transducers::Pipeline;
+
+    // Two isoMap stages invert to two isoMap stages (order reversed, but each
+    // still describes as isoMap).
+    let p = Pipeline::new()
+        .iso_map(
+            &js_sys::Function::new_with_args("x", "return x + 1"),
+            &js_sys::Function::new_with_args("y", "return y - 1"),
+        )
+        .iso_map(
+            &js_sys::Function::new_with_args("x", "return x * 3"),
+            &js_sys::Function::new_with_args("y", "return y / 3"),
+        );
+
+    let inv = p.invert().unwrap();
+    let desc = inv.describe();
+    assert_eq!(desc.length(), 2);
+}
+
+#[wasm_bindgen_test]
+fn test_wasm_pipeline_invert_empty_is_identity() {
+    use js_sys::Array;
+    use orlando_transducers::Pipeline;
+
+    let inv = Pipeline::new().invert().unwrap();
+    assert_eq!(inv.describe().length(), 0);
+
+    let source = Array::new();
+    source.push(&42.into());
+    let result = inv.to_array(&source);
+    assert_eq!(result.get(0).as_f64(), Some(42.0));
+}
+
+#[wasm_bindgen_test]
+fn test_wasm_pipeline_invert_lossy_returns_err() {
+    use js_sys::Function;
+    use orlando_transducers::Pipeline;
+
+    // A pipeline with a lossy filter cannot be inverted — invert() returns Err
+    // (which becomes a thrown Error on the JS side).
+    let lossy = Pipeline::new()
+        .iso_map(
+            &Function::new_with_args("x", "return x + 1"),
+            &Function::new_with_args("y", "return y - 1"),
+        )
+        .filter(&Function::new_with_args("x", "return x > 0"));
+
+    assert!(lossy.invert().is_err());
+}
+
