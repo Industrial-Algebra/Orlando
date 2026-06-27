@@ -84,6 +84,7 @@ pub mod geometric_optics;
 pub mod invert;
 #[macro_use]
 pub mod macros;
+pub mod provenance;
 pub mod iter_ext;
 pub mod logic;
 pub mod optics;
@@ -130,6 +131,9 @@ pub use describe::{Describable, StageSpec};
 
 // Re-export invertible transducer groupoid
 pub use invert::{invert, Invertible, IsoMap};
+
+// Re-export provenance tracing
+pub use provenance::{trace, Trace};
 
 // Re-export optics
 pub use optics::{ComposedLens, Fold, Iso, Lens, Optional, Prism, Traversal};
