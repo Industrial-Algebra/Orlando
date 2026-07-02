@@ -664,7 +664,7 @@ counter.fold(&increments, 0, |acc, _| acc + 1);
 
 ## Pipeline Reflection & Inversion
 
-**NEW:** Orlando pipelines are now **inspectable, serializable, and (for the
+**NEW in v0.6.0!** Orlando pipelines are now **inspectable, serializable, and (for the
 bijective subset) reversible**. See
 [`docs/INVERSE_TRANSDUCER_DESIGN.md`](docs/INVERSE_TRANSDUCER_DESIGN.md) for
 the full design.
@@ -771,7 +771,7 @@ Orlando can also be used as a native Rust library:
 
 ```toml
 [dependencies]
-orlando-transducers = "0.5.0"
+orlando-transducers = "0.6.0"
 ```
 
 ```rust
