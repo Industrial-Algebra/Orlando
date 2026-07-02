@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! # Geometric Optics: Algebra-Aware Data Access
 //!
 //! Optics that understand geometric/algebraic structure, operating on

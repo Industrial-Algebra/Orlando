@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! WASM-specific tests for Orlando transducers.
 //!
 //! These tests run only when targeting WASM and verify JavaScript interop.

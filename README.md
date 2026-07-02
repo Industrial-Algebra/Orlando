@@ -5,7 +5,7 @@
 Orlando brings the power of **transducers** to JavaScript and TypeScript through a blazing-fast Rust/WebAssembly implementation. Named after the bridger characters in Greg Egan's *Diaspora*, who embodied transformation at fundamental levels.
 
 [![npm version](https://img.shields.io/npm/v/orlando-transducers.svg)](https://www.npmjs.com/package/orlando-transducers)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 ## What Are Transducers?
 
@@ -856,7 +856,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+Apache License 2.0 — see [LICENSE](LICENSE) for details.
+
+Contributions are welcome under the
+[Industrial Algebra CLA](https://github.com/Industrial-Algebra/.github/blob/main/CLA.md);
+see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Why "Orlando"?
 

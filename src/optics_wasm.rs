@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! WASM-compatible optics API for JavaScript interop.
 //!
 //! This module provides JavaScript bindings for functional lenses,

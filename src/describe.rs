@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Pipeline reflection: describe composed transducers as serializable stage lists.
 //!
 //! Today Orlando's `Compose<T1, T2, …>` is purely type-level — once built, a

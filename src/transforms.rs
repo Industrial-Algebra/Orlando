@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Standard transducer transformations.
 //!
 //! This module provides common transducers like map, filter, take, etc.

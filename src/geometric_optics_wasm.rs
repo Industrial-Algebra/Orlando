@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! WASM bindings for geometric optics operating on Clifford algebra coefficient arrays.
 //!
 //! These functions expose Orlando's geometric optics to JavaScript via WebAssembly.

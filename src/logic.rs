@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Logic functions for predicate composition and conditional transformations.
 //!
 //! This module provides utilities for combining predicates and creating conditional

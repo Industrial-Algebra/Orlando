@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! The invertible transducer groupoid (Layer A of the inverse-transducer design).
 //!
 //! A transducer is *invertible* when its effect can be undone. The invertible
