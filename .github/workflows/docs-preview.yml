@@ -1,0 +1,74 @@
+name: Docs Preview
+
+# Builds the mdBook and deploys a Netlify preview for pull requests.
+# This is a belt-and-suspenders fallback: it works independently of the
+# Netlify GitHub app's native deploy previews, using only the same two
+# secrets (NETLIFY_SITE_ID, NETLIFY_AUTH_TOKEN) that power docs.yml.
+#
+# Native Netlify previews (from linking the site to the repo) remain the
+# primary mechanism; this workflow guarantees a preview even without that
+# linkage, and posts the URL as a PR comment.
+
+on:
+  pull_request:
+    paths:
+      - 'book/**'
+      - 'book.toml'
+      - 'netlify.toml'
+      - '.github/workflows/docs-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    # Only run on PRs that actually touch docs (and have the secrets available).
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download mdBook
+        run: |
+          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.4.40/mdbook-v0.4.40-x86_64-unknown-linux-gnu.tar.gz | tar -xz
+
+      - name: Build book
+        run: ./mdbook build
+
+      - name: Deploy preview to Netlify
+        id: deploy
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          npm install -g netlify-cli
+          # --alias gives a stable, shareable preview URL (pr-<N>--<site>.netlify.app);
+          # --json lets us capture the URL deterministically.
+          DEPLOY_URL=$(netlify deploy \
+            --dir=book/book \
+            --site="$NETLIFY_SITE_ID" \
+            --auth="$NETLIFY_AUTH_TOKEN" \
+            --alias="pr-${{ github.event.pull_request.number || 'manual' }}" \
+            --message="Docs preview for PR #${{ github.event.pull_request.number }}" \
+            --json | jq -r '.deploy_url')
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed preview to: $DEPLOY_URL"
+
+      - name: Comment preview URL on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR=${{ github.event.pull_request.number }}
+          BODY="<!-- docs-preview -->📖 **Docs preview** for this PR: ${{ steps.deploy.outputs.url }}"
+          # Update an existing preview comment if present, else create one (avoids spam).
+          EXISTING=$(gh api "repos/${{ github.repository }}/issues/$PR/comments" \
+            --jq ".[] | select(.body | startswith(\"<!-- docs-preview -->\")) | .id" | head -n1)
+          if [ -n "$EXISTING" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$EXISTING" \
+              -f body="$BODY"
+          else
+            gh pr comment "$PR" --body "$BODY"
+          fi
