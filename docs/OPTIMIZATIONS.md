@@ -128,12 +128,14 @@ new Pipeline()
 
 ## Future Optimization Opportunities
 
-### 1. SIMD Vectorization (Partially Implemented)
+### 1. Numeric Fast-Path / SIMD Vectorization (Not yet implemented)
 
-Currently implemented for numeric operations in `src/simd.rs`. Could be extended to:
-- String operations
-- Boolean operations
-- Custom types implementing SIMD traits
+A future numeric fast-path could vectorize operations on typed arrays
+(e.g. a `Float64Array`-backed `Map`/`sum`/`mul` in the WASM `Pipeline`).
+The previous standalone `src/simd.rs` prototype was removed: its `map`
+variant extracted SIMD lanes and called the closure per-scalar (no actual
+speedup), and none of it was wired into `Pipeline` or collectors. A proper
+implementation belongs in the numeric hot path, not a detached module.
 
 ### 2. Inline Annotations
 

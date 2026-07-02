@@ -46,6 +46,15 @@ enum Operation {
     Drop(usize),
     DropWhile(Rc<dyn Fn(&JsValue) -> bool>),
     Tap(Rc<dyn Fn(&JsValue)>),
+    /// Invertible map: a streaming isomorphism pairing `to`/`from` (Layer A).
+    ///
+    /// Forward (as a [`Transducer`](crate::transducer::Transducer)) applies `to`;
+    /// [`invert`](Pipeline::invert) swaps the two. Distinct from [`Map`](Self::Map),
+    /// which is not reversible (no inverse is captured).
+    IsoMap {
+        to: Rc<dyn Fn(JsValue) -> JsValue>,
+        from: Rc<dyn Fn(JsValue) -> JsValue>,
+    },
 }
 
 #[wasm_bindgen]
@@ -636,6 +645,171 @@ impl Pipeline {
         pipeline.to_array(source)
     }
 
+    // -----------------------------------------------------------------------
+    // Reflection & inversion (inverse-transducer design, Steps 2/4 lifted to JS)
+    // -----------------------------------------------------------------------
+
+    /// Add an invertible map (streaming isomorphism) to the pipeline.
+    ///
+    /// Unlike [`map`](Self::map), an `isoMap` captures *both* directions, so a
+    /// pipeline built entirely from `isoMap` stages can be
+    /// [inverted](Self::invert).
+    ///
+    /// **Caller responsibility:** `to` and `from` must be true inverses.
+    ///
+    /// # Examples (JavaScript)
+    ///
+    /// ```javascript
+    /// const toF = new Pipeline().isoMap(c => c * 9/5 + 32, f => (f - 32) * 5/9);
+    /// ```
+    #[wasm_bindgen(js_name = isoMap)]
+    pub fn iso_map(&self, to: &Function, from: &Function) -> Pipeline {
+        let to_fn = to.clone();
+        let from_fn = from.clone();
+
+        let to_rc = Rc::new(move |val: JsValue| -> JsValue {
+            let this = JsValue::null();
+            to_fn.call1(&this, &val).unwrap_or(JsValue::undefined())
+        }) as Rc<dyn Fn(JsValue) -> JsValue>;
+
+        let from_rc = Rc::new(move |val: JsValue| -> JsValue {
+            let this = JsValue::null();
+            from_fn.call1(&this, &val).unwrap_or(JsValue::undefined())
+        }) as Rc<dyn Fn(JsValue) -> JsValue>;
+
+        let mut ops = self.operations.clone();
+        ops.push(Operation::IsoMap {
+            to: to_rc,
+            from: from_rc,
+        });
+        Pipeline { operations: ops }
+    }
+
+    /// Describe this pipeline as a serializable array of stage descriptors.
+    ///
+    /// Each element is a plain object `{ op: string, ...params }`. This is the
+    /// JavaScript surface of the Rust [`StageSpec`](crate::describe::StageSpec)
+    /// reflection layer — it enables pipeline-as-config, round-tripping through
+    /// JSON, and visualization.
+    ///
+    /// # Examples (JavaScript)
+    ///
+    /// ```javascript
+    /// const p = new Pipeline().map(x => x * 2).filter(x => x > 5).take(3);
+    /// p.describe();
+    /// // [
+    /// //   { op: 'map' },
+    /// //   { op: 'filter' },
+    /// //   { op: 'take', n: 3 }
+    /// // ]
+    /// ```
+    #[wasm_bindgen]
+    pub fn describe(&self) -> Array {
+        let out = Array::new();
+        for op in &self.operations {
+            let obj = Object::new();
+            match op {
+                Operation::Map(_) => {
+                    Reflect::set(&obj, &"op".into(), &"map".into()).ok();
+                }
+                Operation::Filter(_) => {
+                    Reflect::set(&obj, &"op".into(), &"filter".into()).ok();
+                }
+                Operation::MapFilter { .. } => {
+                    // Fused map+filter — reported truthfully as one fused stage.
+                    Reflect::set(&obj, &"op".into(), &"mapFilter".into()).ok();
+                }
+                Operation::FlatMap(_) => {
+                    Reflect::set(&obj, &"op".into(), &"flatMap".into()).ok();
+                }
+                Operation::Take(n) => {
+                    Reflect::set(&obj, &"op".into(), &"take".into()).ok();
+                    Reflect::set(&obj, &"n".into(), &JsValue::from(*n)).ok();
+                }
+                Operation::TakeWhile(_) => {
+                    Reflect::set(&obj, &"op".into(), &"takeWhile".into()).ok();
+                }
+                Operation::Drop(n) => {
+                    Reflect::set(&obj, &"op".into(), &"drop".into()).ok();
+                    Reflect::set(&obj, &"n".into(), &JsValue::from(*n)).ok();
+                }
+                Operation::DropWhile(_) => {
+                    Reflect::set(&obj, &"op".into(), &"dropWhile".into()).ok();
+                }
+                Operation::Tap(_) => {
+                    Reflect::set(&obj, &"op".into(), &"tap".into()).ok();
+                }
+                Operation::IsoMap { .. } => {
+                    Reflect::set(&obj, &"op".into(), &"isoMap".into()).ok();
+                    Reflect::set(&obj, &"reversible".into(), &JsValue::from_bool(true)).ok();
+                }
+            }
+            out.push(&obj);
+        }
+        out
+    }
+
+    /// Whether every stage in this pipeline is invertible (the bijective subset).
+    ///
+    /// Returns `true` only when all stages are `isoMap` (or the pipeline is
+    /// empty, which is trivially the identity and thus invertible). Lossy stages
+    /// (`filter`, `take`, `drop`, plain `map`, …) make this return `false`.
+    ///
+    /// Use this to guard [`invert`](Self::invert) without catching an exception.
+    #[wasm_bindgen(js_name = canInvert)]
+    pub fn can_invert(&self) -> bool {
+        self.operations
+            .iter()
+            .all(|op| matches!(op, Operation::IsoMap { .. }))
+    }
+
+    /// Produce the inverse pipeline.
+    ///
+    /// Reverses stage order and swaps each `isoMap`'s `to`/`from`, realizing
+    /// the groupoid law `(a ∘ b)⁻¹ = b⁻¹ ∘ a⁻¹`. An empty pipeline inverts to
+    /// an empty pipeline (the identity is self-inverse).
+    ///
+    /// **Throws** a JavaScript `Error` if the pipeline is not invertible (i.e.
+    /// [`canInvert`](Self::can_invert) is false). Check with `canInvert()` first
+    /// if you prefer not to catch.
+    ///
+    /// # Examples (JavaScript)
+    ///
+    /// ```javascript
+    /// const toF = new Pipeline()
+    ///   .isoMap(c => c * 9/5 + 32, f => (f - 32) * 5/9)
+    ///   .isoMap(x => x + 10, y => y - 10);
+    /// const toC = toF.invert();
+    /// ```
+    #[wasm_bindgen]
+    pub fn invert(&self) -> Result<Pipeline, JsValue> {
+        if !self.can_invert() {
+            return Err(JsValue::from_str(
+                "Pipeline is not invertible: it contains lossy stages \
+                 (filter, take, drop, map, ...). Only isoMap stages are reversible. \
+                 Call canInvert() to check beforehand.",
+            ));
+        }
+
+        // Reverse order and swap to/from for each IsoMap. The empty pipeline
+        // (identity) maps to an empty pipeline.
+        let ops: Vec<Operation> = self
+            .operations
+            .iter()
+            .rev()
+            .map(|op| match op {
+                Operation::IsoMap { to, from } => Operation::IsoMap {
+                    to: Rc::clone(from),
+                    from: Rc::clone(to),
+                },
+                // can_invert() guarantees only IsoMap reaches here.
+                _ => unreachable!("can_invert guards invert: only IsoMap is reversible"),
+            })
+            .collect();
+
+        Ok(Pipeline { operations: ops })
+    }
+
     // Internal helper to process a single value through the pipeline
     fn process_value_with_state(
         &self,
@@ -720,6 +894,9 @@ impl Pipeline {
                 }
                 Operation::Tap(f) => {
                     f(&val);
+                }
+                Operation::IsoMap { to, .. } => {
+                    val = to(val);
                 }
             }
         }

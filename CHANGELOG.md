@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-27
+
+### Added
+
+#### Pipeline Reflection & Inversion (inverse-transducer design)
+
+Orlando pipelines are now **inspectable, serializable, and — for the bijective
+subset — reversible**. Three complementary layers:
+
+**Layer C — Reflection (`describe`):**
+- New module `src/describe.rs`: `StageSpec` enum (one variant per op, carrying
+  params) and the `Describable` trait (non-generic, object-safe, opt-in).
+- Implemented by all 15 transforms, `When`/`Unless`/`IfElse`, and
+  `Identity`/`Compose` (preserves data-flow order).
+- `StageSpec::name()` (stable JS-style names) and `is_reversible()` /
+  `is_lossy()` groupoid classification.
+
+**Declarative construction (`pipeline!` macro):**
+- New module `src/macros.rs`: `pipeline!(map(f) >> filter(p) >> take(n))` builds
+  a chain with no struct imports (fully `$crate`-qualified, UFCS compose).
+- Companion `pipeline_descriptor!` emits a compile-time `&'static [StageSpec]`.
+- Cross-consistency tests guarantee forward and inverse cannot drift.
+
+**Layer A — Inversion (`Invertible` / `IsoMap`):**
+- New module `src/invert.rs`: `Invertible<In,Out>` trait with associated
+  `Inverse` type (true groupoid, involution). `IsoMap<F,G,In,Out>` — a streaming
+  isomorphism pairing `to`/`from`, the transducer analogue of the `Iso` optic.
+- `Compose` inverts via the groupoid law `(a ∘ b)⁻¹ = b⁻¹ ∘ a⁻¹`.
+- Lossy transducers lack an `Invertible` impl, so inverting a pipeline
+  containing them is a **compile error** — the groupoid excludes them by
+  construction. New `StageSpec::IsoMap` variant.
+
+**JS/WASM surface:**
+- `Pipeline.describe()` -> serializable stage array.
+- `Pipeline.isoMap(to, from)` builder.
+- `Pipeline.canInvert()` / `Pipeline.invert()` (throws on lossy pipelines).
+
+**Layer B — Provenance (`trace`):**
+- New module `src/provenance.rs`: `trace(transducer, source)` records which
+  input index produced each output. `Trace::kept_mask()` is the post-hoc
+  "inverse of Filter". Works for any transducer (orthogonal to invertibility).
+
+#### Documentation & Examples
+- New mdBook chapters: "Reflection & Inversion" (API) and "Reversible
+  Pipelines" (examples).
+- New `docs/INVERSE_TRANSDUCER_DESIGN.md` design document.
+- Runnable examples: `examples/reflection-inversion.html` (WASM demo),
+  `examples/inversion_demo.rs`, `examples/provenance_demo.rs` (Rust binaries).
+- README "Pipeline Reflection & Inversion" section.
+
+### Changed
+
+#### Licensing: MIT -> Apache-2.0 + CLA
+- Orlando is now licensed under **Apache-2.0** with a Contributor License
+  Agreement, per the Industrial Algebra ecosystem standard.
+- `LICENSE` replaced with the full Apache-2.0 text.
+- All 25 `.rs` files carry the header:
+  `// Copyright (C) 2026 Industrial Algebra` / `// SPDX-License-Identifier: Apache-2.0`.
+- New `CONTRIBUTING.md` requiring the IA CLA.
+
+#### Cleanup
+- Removed dead `src/simd.rs` (`map_f64_simd` was fake SIMD — lane-extract then
+  per-scalar — and was never wired into `Pipeline`/collectors; README/lib docs
+  had claimed otherwise).
+- Synced `package.json` version (was drifting behind `Cargo.toml`).
+- Removed stray `pkg-temp`/`pkg-test` build outputs; gitignored build artifacts.
+
+### Testing
+- Total tests: 769 (414 unit + 76 integration + 127 property + 152 doctests).
+- New tests across all layers; groupoid & cross-consistency laws verified by
+  construction. clippy `--all-targets` clean; wasm32 check clean.
+
 ## [0.5.0] - 2026-03-09
 
 ### Added
@@ -238,7 +310,8 @@ Rust API:
 - Code coverage reporting
 - WASM test suite
 
-[Unreleased]: https://github.com/justinelliottcobb/Orlando/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/justinelliottcobb/Orlando/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/justinelliottcobb/Orlando/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/justinelliottcobb/Orlando/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/justinelliottcobb/Orlando/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/justinelliottcobb/Orlando/compare/v0.1.0...v0.3.0

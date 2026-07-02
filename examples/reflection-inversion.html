@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orlando Transducers - Reflection & Inversion</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 860px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+        h1 { color: #2c3e50; }
+        h2 { color: #34495e; margin-top: 32px; }
+        .example {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 12px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        code { background: #ecf0f1; padding: 1px 5px; border-radius: 3px; font-size: 0.95em; }
+        .result { font-family: monospace; background: #eafaf1; padding: 10px; border-radius: 4px; margin-top: 8px; }
+        .badge { display: inline-block; background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Orlando Transducers — Reflection & Inversion</h1>
+    <p><span class="badge">v0.6.0</span> Inspect, serialize, and reverse pipelines.</p>
+
+    <div class="example">
+        <h2>1. describe() — inspect any pipeline</h2>
+        <p>Serialize a pipeline's stages to a JSON-friendly array.</p>
+        <div id="describe-result" class="result"></div>
+    </div>
+
+    <div class="example">
+        <h2>2. isoMap() — invertible maps</h2>
+        <p>Forward: C → F, then +10. Each stage captures both directions.</p>
+        <div id="forward-result" class="result"></div>
+    </div>
+
+    <div class="example">
+        <h2>3. canInvert() / invert() — reverse the bijective subset</h2>
+        <p>Recover the original input by running the inverse.</p>
+        <div id="invert-result" class="result"></div>
+    </div>
+
+    <div class="example">
+        <h2>4. Lossy pipelines cannot be inverted</h2>
+        <p>A pipeline with a filter throws on invert(); canInvert() guards it.</p>
+        <div id="lossy-result" class="result"></div>
+    </div>
+
+    <script type="module">
+        import init, { Pipeline } from '../pkg/orlando_transducers.js';
+
+        async function runExamples() {
+            await init();
+
+            // 1. describe()
+            {
+                const p = new Pipeline().map(x => x * 2).filter(x => x > 5).take(3);
+                const desc = p.describe();
+                document.getElementById('describe-result').textContent =
+                    'stages = ' + JSON.stringify(desc);
+            }
+
+            // 2. isoMap forward
+            {
+                const toF = new Pipeline()
+                    .isoMap(c => c * 9/5 + 32, f => (f - 32) * 5/9)
+                    .isoMap(x => x + 10, y => y - 10);
+                const celsius = [0, 100, 25];
+                const out = Array.from(toF.toArray(celsius));
+                document.getElementById('forward-result').textContent =
+                    `celsius ${JSON.stringify(celsius)} -> ${JSON.stringify(out)}`;
+            }
+
+            // 3. invert()
+            {
+                const toF = new Pipeline()
+                    .isoMap(c => c * 9/5 + 32, f => (f - 32) * 5/9)
+                    .isoMap(x => x + 10, y => y - 10);
+                const canInvert = toF.canInvert();
+                const celsius = [0, 100, 25];
+                const forward = Array.from(toF.toArray(celsius));
+                const toC = toF.invert();
+                const recovered = Array.from(toC.toArray(forward));
+                document.getElementById('invert-result').textContent =
+                    `canInvert=${canInvert}; recovered ${JSON.stringify(recovered)} == original ${JSON.stringify(celsius)}`;
+            }
+
+            // 4. lossy
+            {
+                const lossy = new Pipeline()
+                    .isoMap(x => x + 1, y => y - 1)
+                    .filter(x => x > 0);
+                const canInvert = lossy.canInvert();
+                let threw = false;
+                try { lossy.invert(); } catch (e) { threw = true; }
+                document.getElementById('lossy-result').textContent =
+                    `canInvert=${canInvert}; invert() threw=${threw} (correct: filter is lossy)`;
+            }
+        }
+
+        runExamples().catch(err => {
+            document.body.innerHTML += `<pre>Failed to load WASM: ${err}\n` +
+                'Run: wasm-pack build --target web --out-dir pkg</pre>';
+        });
+    </script>
+</body>
+</html>

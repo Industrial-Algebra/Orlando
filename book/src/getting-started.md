@@ -151,7 +151,7 @@ Orlando is also a first-class Rust library:
 
 ```toml
 [dependencies]
-orlando-transducers = "0.5.0"
+orlando-transducers = "0.6.0"
 ```
 
 ```rust

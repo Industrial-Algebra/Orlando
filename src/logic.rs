@@ -3,6 +3,7 @@
 //! This module provides utilities for combining predicates and creating conditional
 //! transformations, inspired by Ramda's logic functions.
 
+use crate::describe::{Describable, StageSpec};
 use crate::step::Step;
 use crate::transducer::Transducer;
 use std::marker::PhantomData;
@@ -337,6 +338,28 @@ where
                 reducer(acc, on_false(val))
             }
         })
+    }
+}
+
+// ===========================================================================
+// Reflection: conditional transducers describe themselves as StageSpecs.
+// ===========================================================================
+
+impl<P, F, T> Describable for When<P, F, T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::When);
+    }
+}
+
+impl<P, F, T> Describable for Unless<P, F, T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::Unless);
+    }
+}
+
+impl<P, F1, F2, T> Describable for IfElse<P, F1, F2, T> {
+    fn describe_into(&self, out: &mut Vec<StageSpec>) {
+        out.push(StageSpec::IfElse);
     }
 }
 

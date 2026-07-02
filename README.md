@@ -64,7 +64,6 @@ Real-world benchmarks show **3-19x speedup** over native JavaScript array method
 1. **Zero intermediate arrays** - Array methods create a new array at each step
 2. **Early termination** - Orlando stops processing immediately when conditions are met
 3. **WASM execution** - Native performance via WebAssembly
-4. **SIMD optimizations** - Vectorized operations for numeric data (when available)
 
 [Run benchmarks in your browser →](examples/performance.html)
 
@@ -663,6 +662,81 @@ let increments = Stream::new();
 counter.fold(&increments, 0, |acc, _| acc + 1);
 ```
 
+## Pipeline Reflection & Inversion
+
+**NEW in v0.6.0!** Orlando pipelines are now **inspectable, serializable, and (for the
+bijective subset) reversible**. See
+[`docs/INVERSE_TRANSDUCER_DESIGN.md`](docs/INVERSE_TRANSDUCER_DESIGN.md) for
+the full design.
+
+### Inspect any pipeline (`describe`)
+
+```javascript
+const p = new Pipeline().map(x => x * 2).filter(x => x > 5).take(3);
+p.describe();
+// [ { op: 'map' }, { op: 'filter' }, { op: 'take', n: 3 } ]
+```
+
+In Rust, every composed transducer implements `Describable`:
+
+```rust
+use orlando_transducers::{Describable, StageSpec};
+use orlando_transducers::transforms::{Map, Filter, Take};
+use orlando_transducers::transducer::Transducer;
+
+let p = Map::new(|x: i32| x * 2)
+    .compose(Filter::new(|x: &i32| *x > 5))
+    .compose(Take::new(3));
+assert_eq!(p.describe(), vec![StageSpec::Map, StageSpec::Filter, StageSpec::Take { n: 3 }]);
+```
+
+### Build declaratively (`pipeline!` macro)
+
+```rust
+use orlando_transducers::pipeline;
+
+// No struct imports needed — reads as data flows.
+let p = pipeline!(map(|x: i32| x * 2) >> filter(|x: &i32| *x > 5) >> take(3));
+```
+
+A companion `pipeline_descriptor!` emits a compile-time `&[StageSpec]` for the
+same stages — forward and inverse are guaranteed not to drift.
+
+### Invert the bijective subset (`isoMap` / `invert`)
+
+Lossy ops (`filter`, `take`, `drop`, …) have no inverse, but pipelines built
+entirely from `isoMap` stages (streaming isomorphisms pairing `to`/`from`) form
+a **groupoid** and can be reversed:
+
+```javascript
+const toF = new Pipeline()
+  .isoMap(c => c * 9/5 + 32, f => (f - 32) * 5/9)
+  .isoMap(x => x + 10, y => y - 10);
+
+if (toF.canInvert()) {
+  const toC = toF.invert();   // reverses order + swaps to/from
+}
+```
+
+In Rust, `IsoMap` + the `Invertible` trait make non-invertible pipelines a
+**compile error** to invert (the groupoid excludes lossy ops by construction).
+
+### Trace lossy pipelines (provenance)
+
+For lossy pipelines, the `trace` function records which inputs produced each
+output — the post-hoc "inverse of Filter" is a kept-mask:
+
+```rust
+use orlando_transducers::provenance::trace;
+use orlando_transducers::transforms::{Map, Filter};
+use orlando_transducers::transducer::Transducer;
+
+let p = Filter::new(|x: &i32| x % 2 == 0).compose(Map::new(|x: i32| x * 2));
+let data = vec![1, 2, 3, 4, 5, 6];
+let (outputs, t) = trace(&p, data.clone());
+assert_eq!(t.kept_mask(data.len()), vec![false, true, false, true, false, true]);
+```
+
 ## Documentation
 
 - **[JavaScript/TypeScript API](docs/api/JAVASCRIPT.md)** - Complete API reference
@@ -697,7 +771,7 @@ Orlando can also be used as a native Rust library:
 
 ```toml
 [dependencies]
-orlando-transducers = "0.5.0"
+orlando-transducers = "0.6.0"
 ```
 
 ```rust
@@ -752,7 +826,6 @@ orlando/
 │   ├── signal.rs               # Reactive Signal<T>
 │   ├── stream.rs               # Reactive Stream<T>
 │   ├── iter_ext.rs             # Rust iterator extensions & PipelineBuilder
-│   ├── simd.rs                 # SIMD optimizations
 │   └── pipeline.rs             # JavaScript Pipeline WASM API
 ├── docs/api/                   # API documentation
 ├── examples/                   # Interactive HTML examples
@@ -775,7 +848,6 @@ Orlando works in all modern browsers with WebAssembly support:
 Contributions welcome! Areas we'd love help with:
 
 - Additional transformations (partition, chunk, etc.)
-- More SIMD optimizations
 - Performance benchmarks
 - Documentation improvements
 - Real-world example applications
