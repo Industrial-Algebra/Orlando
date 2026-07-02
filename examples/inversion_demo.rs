@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Reversible pipeline example: build, run, describe, and invert.
 //!
 //! Run with: cargo run --example inversion_demo --target x86_64-unknown-linux-gnu

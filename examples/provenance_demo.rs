@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Provenance example: trace which inputs survive a lossy pipeline.
 //!
 //! Run with: cargo run --example provenance_demo --target x86_64-unknown-linux-gnu
