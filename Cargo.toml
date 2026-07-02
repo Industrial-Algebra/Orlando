@@ -1,10 +1,10 @@
 [package]
 name = "orlando-transducers"
-version = "0.5.1"
+version = "0.6.0"
 edition = "2021"
 authors = ["Justin Elliott Cobb"]
 description = "High-performance transducers, functional optics, and reactive primitives — with WebAssembly bindings for JavaScript"
-license = "MIT"
+license = "Apache-2.0"
 repository = "https://github.com/justinelliottcobb/Orlando"
 documentation = "https://orlando.industrialalgebra.com"
 keywords = ["transducers", "optics", "functional", "wasm", "data-transformation"]

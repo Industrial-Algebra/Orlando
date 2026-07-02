@@ -48,7 +48,6 @@ const result = pipeline.toArray(data);
 - **Profunctor encoding** - Principled optics composition via [Karpal](https://crates.io/crates/karpal-optics)
 - **Reactive primitives** - Signal and Stream types (Rust API)
 - **Geometric optics** - Multivector grade projection and extraction
-- **Dual platform** - Available on [crates.io](https://crates.io/crates/orlando-transducers) for Rust and [npm](https://www.npmjs.com/package/orlando-transducers) for JavaScript/TypeScript
 - **Tiny** - <50KB compressed WASM bundle
 
 ## Performance
@@ -66,7 +65,6 @@ Orlando's architecture is designed around three principles:
 1. **Zero intermediate arrays** - Array methods create a new array at each step
 2. **Early termination** - Orlando stops processing immediately when conditions are met
 3. **WASM execution** - Pre-compiled, consistent native performance
-4. **SIMD optimizations** - Vectorized operations for numeric data (when available)
 
 ## Category Theory Foundation
 

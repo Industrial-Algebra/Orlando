@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Profunctor types re-exported from Karpal.
 //!
 //! Profunctors are the foundation of the profunctor optics encoding.

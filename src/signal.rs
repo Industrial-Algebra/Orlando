@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! # Signal: A time-varying reactive value
 //!
 //! `Signal<T>` represents a value that changes over time. When the value changes,

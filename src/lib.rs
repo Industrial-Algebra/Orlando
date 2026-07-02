@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! # Orlando: Compositional Data Transformation
 //!
 //! Orlando is a high-performance data transformation library that implements transducers
@@ -73,20 +76,23 @@
 //!
 //! Orlando leverages:
 //! - **Zero-cost abstractions** - Rust's monomorphization eliminates abstraction overhead
-//! - **WASM SIMD** - Vectorized operations for numeric data
 //! - **Early termination** - Stop processing as soon as possible
 //! - **Single-pass execution** - No intermediate allocations
 //!
 //! Benchmarks show 3-5x performance improvement over pure JavaScript array chaining.
 
 pub mod collectors;
+pub mod describe;
 pub mod geometric_optics;
+pub mod invert;
+#[macro_use]
+pub mod macros;
 pub mod iter_ext;
 pub mod logic;
 pub mod optics;
 pub mod profunctor;
+pub mod provenance;
 pub mod signal;
-pub mod simd;
 pub mod step;
 pub mod stream;
 pub mod transducer;
@@ -122,6 +128,15 @@ pub use collectors::{
 
 // Re-export logic functions and conditional transducers
 pub use logic::{all_pass, any_pass, both, complement, either, IfElse, Unless, When};
+
+// Re-export pipeline reflection
+pub use describe::{Describable, StageSpec};
+
+// Re-export invertible transducer groupoid
+pub use invert::{invert, Invertible, IsoMap};
+
+// Re-export provenance tracing
+pub use provenance::{trace, Trace};
 
 // Re-export optics
 pub use optics::{ComposedLens, Fold, Iso, Lens, Optional, Prism, Traversal};

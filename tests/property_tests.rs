@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Property-based tests for Orlando transducers.
 //!
 //! These tests verify algebraic properties and invariants that should hold

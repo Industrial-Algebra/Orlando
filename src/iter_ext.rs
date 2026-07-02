@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! # Iterator Extension for Transducers
 //!
 //! Provides an extension trait that lets you apply transducer pipelines

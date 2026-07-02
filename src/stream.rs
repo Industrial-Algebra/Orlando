@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! # Stream: A push-based event stream
 //!
 //! `Stream<T>` represents a sequence of discrete events over time.
