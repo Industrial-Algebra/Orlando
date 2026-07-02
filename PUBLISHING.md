@@ -1,6 +1,6 @@
 # Publishing Guide
 
-This document explains how to publish Orlando to npm using the automated CI/CD pipeline.
+This document explains how to publish Orlando to crates.io and npm using the automated CI/CD pipeline.
 
 ## Prerequisites
 
@@ -9,7 +9,12 @@ This document explains how to publish Orlando to npm using the automated CI/CD p
    - Create a secret named `NPM_TOKEN` with your npm access token
    - ✅ This has already been set up
 
-2. **Permissions**: You must have push access to create tags on the repository
+2. **Cargo Registry Token**: A `CARGO_REGISTRY_TOKEN` secret must be configured in the GitHub repository
+   - Go to Settings → Secrets and variables → Actions
+   - Create a secret named `CARGO_REGISTRY_TOKEN` with your crates.io API token
+   - Generate a token at [crates.io/settings/tokens](https://crates.io/settings/tokens) with "publish-new" and "publish-update" scopes
+
+3. **Permissions**: You must have push access to create tags on the repository
 
 ## Publishing Process
 
@@ -76,17 +81,26 @@ git push origin vX.Y.Z
 
 #### Step 4: Verify Publication
 
-1. **Check npm**:
+1. **Check crates.io**:
+   ```bash
+   cargo search orlando-transducers
+   ```
+
+2. **Check npm**:
    ```bash
    npm view orlando-transducers
    ```
 
-2. **Check GitHub Releases**:
+3. **Check GitHub Releases**:
    - Go to repository → Releases
    - Verify the new release is created with attached WASM files
 
-3. **Test installation**:
+4. **Test installations**:
    ```bash
+   # Rust
+   cargo add orlando-transducers@X.Y.Z
+
+   # JavaScript
    npm install orlando-transducers@X.Y.Z
    ```
 
@@ -116,12 +130,13 @@ This runs the full workflow including `npm publish --dry-run` but doesn't actual
    - Clippy linting
    - Rustfmt check
    - WASM tests
-5. **Build**: Compiles optimized WASM package
+5. **Publish to crates.io**: Publishes the Rust crate (if triggered by tag)
+6. **Build**: Compiles optimized WASM package
    - Cleans pkg directory to avoid stale files
    - Builds with wasm-pack in release mode
    - Adds copyright metadata to generated package.json
-6. **Publish**: Publishes to npm (if triggered by tag)
-7. **Release**: Creates GitHub Release with notes and artifacts
+7. **Publish to npm**: Publishes the npm package (if triggered by tag)
+8. **Release**: Creates GitHub Release with notes and artifacts
 
 ### Workflow Triggers
 
@@ -130,7 +145,8 @@ This runs the full workflow including `npm publish --dry-run` but doesn't actual
 
 ### Environment Variables
 
-- `NODE_AUTH_TOKEN`: Set from `NPM_TOKEN` secret for authentication
+- `CARGO_REGISTRY_TOKEN`: Set from `CARGO_REGISTRY_TOKEN` secret for crates.io authentication
+- `NODE_AUTH_TOKEN`: Set from `NPM_TOKEN` secret for npm authentication
 
 ## Versioning Strategy
 
@@ -160,11 +176,11 @@ npm publish --tag beta
 
 ### Publish Failed: Version Already Exists
 
-**Error**: `Cannot publish over the previously published versions`
+**Error**: `Cannot publish over the previously published versions` (npm) or `crate version already exists` (crates.io)
 
 **Solution**: Increment the version number and create a new tag
 
-### Publish Failed: Authentication Error
+### Publish Failed: Authentication Error (npm)
 
 **Error**: `401 Unauthorized`
 
@@ -172,6 +188,15 @@ npm publish --tag beta
 1. Verify `NPM_TOKEN` secret is correctly set
 2. Ensure the token has publish permissions
 3. Token may have expired - generate a new one
+
+### Publish Failed: Authentication Error (crates.io)
+
+**Error**: `authentication failed` or `403 Forbidden`
+
+**Solution**:
+1. Verify `CARGO_REGISTRY_TOKEN` secret is correctly set
+2. Ensure the token has "publish-new" and "publish-update" scopes
+3. Token may have expired - generate a new one at [crates.io/settings/tokens](https://crates.io/settings/tokens)
 
 ### Tests Failed
 
