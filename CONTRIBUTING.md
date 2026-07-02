@@ -31,3 +31,27 @@ text. Every source file carries the header:
 4. Open a pull request against `develop`.
 
 For WASM work, verify `cargo check --target wasm32-unknown-unknown` passes.
+
+## Branching & release flow
+
+Orlando follows the Industrial Algebra gitflow. **`develop` is the single
+source of truth**; `main` receives releases only.
+
+```
+feature branch  --PR-->  develop  --release PR-->  main  --tag v*.*.*--
+```
+
+- **Feature work** branches off `develop` and PRs back to `develop`.
+- **Releases** are a PR from `develop` (or a `release/*` branch off `develop`)
+  into `main`, then a `v*.*.*` tag on `main` (which triggers publishing).
+- **`main` must never receive commits that are not also on `develop`.** This is
+  the rule that keeps the two branches from diverging. Release-only changes
+  (CI, packaging, version bumps) are made on `develop` first, then flow to
+  `main` via the release PR — never the reverse without an explicit back-merge.
+- If a hotfix is needed on `main`, open it against `develop` and release it
+  forward, or back-merge `main` → `develop` immediately afterward.
+
+> **Why this matters:** prior to 0.6.0, release infra landed on `main`
+> without flowing back to `develop`, causing the branches to diverge for two
+> major versions and making later releases require messy conflict resolution.
+> The rule above prevents that recurrence.
