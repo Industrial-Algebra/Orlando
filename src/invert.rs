@@ -187,7 +187,10 @@ mod tests {
 
     #[test]
     fn iso_map_invert_recovers_input() {
-        let to_f = IsoMap::new(|c: f64| c * 9.0 / 5.0 + 32.0, |f: f64| (f - 32.0) * 5.0 / 9.0);
+        let to_f = IsoMap::new(
+            |c: f64| c * 9.0 / 5.0 + 32.0,
+            |f: f64| (f - 32.0) * 5.0 / 9.0,
+        );
         let celsius = vec![0.0, 100.0, 25.0, -40.0];
         let fahrenheit = to_vec(&to_f, celsius.clone());
 
@@ -257,7 +260,10 @@ mod tests {
 
         // Forward describes [IsoMap, IsoMap]; the inverse is also two IsoMaps
         // (reversal is structural, but each part still describes as IsoMap).
-        assert_eq!(forward.invert().describe(), vec![StageSpec::IsoMap, StageSpec::IsoMap]);
+        assert_eq!(
+            forward.invert().describe(),
+            vec![StageSpec::IsoMap, StageSpec::IsoMap]
+        );
     }
 
     #[test]
@@ -267,7 +273,10 @@ mod tests {
         let forward = a.compose(b);
 
         let roundtrip = forward.invert().invert();
-        assert_eq!(to_vec(&roundtrip, vec![1, 2, 3]), to_vec(&forward, vec![1, 2, 3]));
+        assert_eq!(
+            to_vec(&roundtrip, vec![1, 2, 3]),
+            to_vec(&forward, vec![1, 2, 3])
+        );
     }
 
     // ---- three-stage composition ----

@@ -11,8 +11,8 @@
 
 use orlando_transducers::collectors::to_vec;
 use orlando_transducers::provenance::trace;
-use orlando_transducers::transforms::{Filter, Map};
 use orlando_transducers::transducer::Transducer;
+use orlando_transducers::transforms::{Filter, Map};
 
 fn main() {
     // Keep even numbers, then double them.

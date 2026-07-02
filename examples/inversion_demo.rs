@@ -10,8 +10,8 @@
 
 use orlando_transducers::collectors::to_vec;
 use orlando_transducers::invert::IsoMap;
-use orlando_transducers::{Describable, Invertible};
 use orlando_transducers::transducer::Transducer;
+use orlando_transducers::{Describable, Invertible};
 
 fn main() {
     // Two-step temperature transform: C -> F, then offset by 10.

@@ -376,8 +376,8 @@ mod tests {
 
     #[test]
     fn pipeline_matches_manual_compose() {
-        use crate::transforms::{Filter, Map, Take};
         use crate::transducer::Transducer;
+        use crate::transforms::{Filter, Map, Take};
 
         let manual = Map::new(|x: i32| x * 2)
             .compose(Filter::new(|x: &i32| *x > 5))
@@ -444,7 +444,9 @@ mod tests {
     #[test]
     fn pipeline_iso_map_is_invertible() {
         // A pipeline built entirely from invertible stages is itself invertible.
-        let p = pipeline!(iso_map(|x: i32| x * 2, |y: i32| y / 2) >> iso_map(|x: i32| x + 10, |y: i32| y - 10));
+        let p = pipeline!(
+            iso_map(|x: i32| x * 2, |y: i32| y / 2) >> iso_map(|x: i32| x + 10, |y: i32| y - 10)
+        );
         let input = vec![1, 2, 3];
         let output = to_vec(&p, input.clone());
         assert_eq!(output, vec![12, 14, 16]);

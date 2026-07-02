@@ -793,14 +793,19 @@ impl Pipeline {
 
         // Reverse order and swap to/from for each IsoMap. The empty pipeline
         // (identity) maps to an empty pipeline.
-        let ops: Vec<Operation> = self.operations.iter().rev().map(|op| match op {
-            Operation::IsoMap { to, from } => Operation::IsoMap {
-                to: Rc::clone(from),
-                from: Rc::clone(to),
-            },
-            // can_invert() guarantees only IsoMap reaches here.
-            _ => unreachable!("can_invert guards invert: only IsoMap is reversible"),
-        }).collect();
+        let ops: Vec<Operation> = self
+            .operations
+            .iter()
+            .rev()
+            .map(|op| match op {
+                Operation::IsoMap { to, from } => Operation::IsoMap {
+                    to: Rc::clone(from),
+                    from: Rc::clone(to),
+                },
+                // can_invert() guarantees only IsoMap reaches here.
+                _ => unreachable!("can_invert guards invert: only IsoMap is reversible"),
+            })
+            .collect();
 
         Ok(Pipeline { operations: ops })
     }

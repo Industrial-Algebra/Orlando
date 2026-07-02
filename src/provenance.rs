@@ -200,8 +200,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::transforms::{Drop, Filter, Map, Take, FlatMap, Chunk, Aperture};
     use crate::transducer::Transducer;
+    use crate::transforms::{Aperture, Chunk, Drop, Filter, FlatMap, Map, Take};
 
     // ---- identity / map: 1-to-1 provenance ----
 
@@ -251,7 +251,10 @@ mod tests {
         assert_eq!(out, vec![0, 1, 2]);
         assert_eq!(t.sources, vec![0, 1, 2]);
         // Inverse-of-Take: first 3 inputs kept.
-        assert_eq!(t.kept_mask(10), vec![true, true, true, false, false, false, false, false, false, false]);
+        assert_eq!(
+            t.kept_mask(10),
+            vec![true, true, true, false, false, false, false, false, false, false]
+        );
     }
 
     // ---- drop: suffix provenance ----
@@ -320,7 +323,10 @@ mod tests {
         // outputs came from inputs 1 and 3 (the first two evens).
         assert_eq!(t.sources, vec![1, 3]);
         // Only those two inputs survived to an output.
-        assert_eq!(t.kept_mask(data.len()), vec![false, true, false, true, false, false, false]);
+        assert_eq!(
+            t.kept_mask(data.len()),
+            vec![false, true, false, true, false, false, false]
+        );
     }
 
     // ---- source_of round-trip ----

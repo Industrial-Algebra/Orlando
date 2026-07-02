@@ -84,11 +84,11 @@ pub mod geometric_optics;
 pub mod invert;
 #[macro_use]
 pub mod macros;
-pub mod provenance;
 pub mod iter_ext;
 pub mod logic;
 pub mod optics;
 pub mod profunctor;
+pub mod provenance;
 pub mod signal;
 pub mod step;
 pub mod stream;

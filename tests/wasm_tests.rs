@@ -1508,4 +1508,3 @@ fn test_wasm_pipeline_invert_lossy_returns_err() {
 
     assert!(lossy.invert().is_err());
 }
-

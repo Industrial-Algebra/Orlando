@@ -226,10 +226,7 @@ mod tests {
             vec![StageSpec::FlatMap]
         );
         assert_eq!(Tap::new(|_: &i32| {}).describe(), vec![StageSpec::Tap]);
-        assert_eq!(
-            Interpose::new(0).describe(),
-            vec![StageSpec::Interpose]
-        );
+        assert_eq!(Interpose::new(0).describe(), vec![StageSpec::Interpose]);
         assert_eq!(
             RepeatEach::<i32>::new(2).describe(),
             vec![StageSpec::RepeatEach { n: 2 }]
@@ -242,10 +239,7 @@ mod tests {
 
     #[test]
     fn test_identity_stage() {
-        assert_eq!(
-            Identity::<i32>::new().describe(),
-            vec![StageSpec::Identity]
-        );
+        assert_eq!(Identity::<i32>::new().describe(), vec![StageSpec::Identity]);
     }
 
     #[test]
@@ -273,11 +267,7 @@ mod tests {
 
         assert_eq!(
             pipeline.describe(),
-            vec![
-                StageSpec::Map,
-                StageSpec::Filter,
-                StageSpec::Take { n: 3 },
-            ]
+            vec![StageSpec::Map, StageSpec::Filter, StageSpec::Take { n: 3 },]
         );
     }
 
