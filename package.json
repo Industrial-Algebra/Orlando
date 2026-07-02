@@ -35,8 +35,8 @@
     "category-theory"
   ],
   "author": "Justin Elliott Cobb",
-  "license": "MIT",
-  "copyright": "Copyright (c) 2025 Justin Elliott Cobb",
+  "license": "Apache-2.0",
+  "copyright": "Copyright (c) 2026 Industrial Algebra",
   "bugs": {
     "url": "https://github.com/justinelliottcobb/Orlando/issues"
   },

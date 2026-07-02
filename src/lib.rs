@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! # Orlando: Compositional Data Transformation
 //!
 //! Orlando is a high-performance data transformation library that implements transducers

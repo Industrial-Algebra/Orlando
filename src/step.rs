@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! The Step monad for early termination in transducer chains.
 //!
 //! # Category Theory

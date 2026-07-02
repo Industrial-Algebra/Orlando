@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Declarative pipeline macros: build a transducer chain and a matching
 //! static descriptor from a single, readable declaration.
 //!

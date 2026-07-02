@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Provenance traces for lossy transducers (Layer B of the inverse-transducer design).
 //!
 //! Layer A ([`Invertible`](crate::invert::Invertible)) handles the *bijective*

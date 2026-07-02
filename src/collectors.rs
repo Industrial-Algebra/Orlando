@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! Terminal operations (collectors) for transducers.
 //!
 //! Collectors are reducing functions that consume the output of a transducer

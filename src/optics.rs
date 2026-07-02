@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Industrial Algebra
+// SPDX-License-Identifier: Apache-2.0
+
 //! # Optics: Functional Lenses for Immutable Data Access
 //!
 //! Optics provide composable, type-safe access to nested data structures.
