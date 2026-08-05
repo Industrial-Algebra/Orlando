@@ -6,5 +6,9 @@ node_modules
 *.log
 Cargo.lock
 .DS_Store
-tests/property_tests.proptest-regressions
+# proptest regression seeds (default `*.proptest-regressions` dirs + custom `proptest-regressions/`)
+*.proptest-regressions
+proptest-regressions/
+# agent/MCP config (machine-specific absolute paths)
+.mcp.json
 book/book/
