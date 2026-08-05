@@ -10,9 +10,10 @@
 //! 1. **Composition reads naturally** — `map(f) >> filter(p) >> take(n)` instead
 //!    of `Map::new(f).compose(Filter::new(p)).compose(Take::new(n))` with a
 //!    battery of struct imports.
-//! 2. **Forward and inverse stay in sync by construction** — both [`pipeline!`]
-//!    and [`pipeline_descriptor!`] dispatch through the *same* per-operation
-//!    mapping, and the built chain is itself [`Describable`] (Step 2), so
+//! 2. **Forward and inverse stay in sync by construction** — both
+//!    [`pipeline!`](crate::pipeline) and [`pipeline_descriptor!`](crate::pipeline_descriptor)
+//!    dispatch through the *same* per-operation mapping, and the built chain is
+//!    itself [`Describable`](crate::describe::Describable) (Step 2), so
 //!    `.describe()` and the macro-produced descriptor are provably consistent
 //!    (a property test asserts this).
 //!
@@ -191,11 +192,11 @@ macro_rules! pipeline {
 
 /// Build a compile-time, zero-allocation `&[StageSpec]` descriptor.
 ///
-/// Mirrors [`pipeline!`] stage names but only keeps the parameters that appear
+/// Mirrors [`pipeline!`](crate::pipeline) stage names but only keeps the parameters that appear
 /// in a `StageSpec` (counts/sizes); closure bodies are omitted. The result is a
 /// `&'static [StageSpec]` suitable for `const` contexts.
 ///
-/// This and [`pipeline!`] share the same per-operation semantics, so a pipeline
+/// This and [`pipeline!`](crate::pipeline) share the same per-operation semantics, so a pipeline
 /// built with `pipeline!` and described via `.describe()` is guaranteed to
 /// equal the matching `pipeline_descriptor!` (asserted in tests).
 ///

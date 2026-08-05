@@ -6,7 +6,7 @@
 //! A transducer is *invertible* when its effect can be undone. The invertible
 //! transducers form a **groupoid** under composition:
 //!
-//! - [`Identity`] inverts to itself.
+//! - [`Identity`](crate::transducer::Identity) inverts to itself.
 //! - [`IsoMap`]`<to, from>` inverts to `IsoMap<from, to>` (swap directions).
 //! - [`Compose`](crate::transducer::Compose)`<a, b>` inverts to
 //!   `Compose<b⁻¹, a⁻¹>` — i.e. reverse the order and invert each part.

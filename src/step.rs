@@ -9,7 +9,7 @@
 //! during a reduction operation. This is essential for transducers like `take` and
 //! `take_while` that need to signal when processing should stop.
 //!
-//! Mathematically, Step<T> is isomorphic to Either T T, where:
+//! Mathematically, `Step<T>` is isomorphic to `Either<T, T>`, where:
 //! - Continue(T) represents "continue processing with this value"
 //! - Stop(T) represents "stop processing with this final value"
 //!
